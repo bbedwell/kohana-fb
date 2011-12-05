@@ -32,32 +32,32 @@ abstract class Kohana_FB {
 	/**
 	 * @var  Kohana_FB  Singleton static instance
 	 */
-	private static $_instance;
+	protected static $_instance;
 	
 	/**
 	 * @var  Facebook  Instance
 	 */
-	private $_facebook;
+	protected $_facebook;
 	
 	/**
 	 * @var  array  User information
 	 */
-	private $_me;
+	protected $_me;
 	
 	/**
 	 * @var  array  What fields to query about the user
 	 */
-	private $_fields = array();
+	protected $_fields = array();
 	
 	/**
 	 * @var  boolean  Whether user has been authed
 	 */
-	private $_authed = FALSE;
+	protected $_authed = FALSE;
 	
 	/**
 	 * @var  string  The class name to use for the facebook sdk. Can be used with a wrapper
 	 */
-	private $_class;
+	protected $_class;
 	
 	/**
 	 * Authorizes the user
@@ -84,7 +84,7 @@ abstract class Kohana_FB {
 			// Attempt to query information about the user
 			try 
 			{
-				$this->_me = $this->_facebook->api( "/".$this->_facebook->getUser()."?fields=" . implode(',', $this->_fields) );
+				$this->_me = $this->get_user();
 			}
 
 			// If failed attempt, redirect to login page (Auth)
@@ -113,6 +113,16 @@ abstract class Kohana_FB {
 		}
 		
 		return $this;
+	}
+	
+	/**
+	 * Gets users data from Facebook
+	 *
+	 * @return  array
+	 */
+	protected function get_user()
+	{
+		return $this->_facebook->api( "/".$this->_facebook->getUser()."?fields=" . implode(',', $this->_fields) );
 	}
 
 	/**
