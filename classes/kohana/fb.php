@@ -84,11 +84,7 @@ abstract class Kohana_FB {
 			// Attempt to query information about the user
 			try 
 			{
-				$this->_me = $this->_facebook
-					->query( "/".$this->_facebook->getUser()."?fields=" . implode(',', $this->_fields) )
-					->set_table('user')
-					->set_lifetime(3600)
-					->execute(TRUE);
+				$this->_me = $this->_facebook->api( "/".$this->_facebook->getUser()."?fields=" . implode(',', $this->_fields) );
 			}
 
 			// If failed attempt, redirect to login page (Auth)
