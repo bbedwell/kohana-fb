@@ -1,4 +1,10 @@
 <?php defined('SYSPATH') or die('No direct script access.');
+
+if( !class_exists('Facebook') )
+{
+	require_once Kohana::find_file('vendor','facebook/src/facebook');
+}
+
 /**
  * Authorizes a user for Facebook Application
  * https://github.com/facebook/php-sdk
@@ -26,81 +32,91 @@ abstract class Kohana_FB {
 	/**
 	 * @var  Kohana_FB  Singleton static instance
 	 */
-	protected static $_instance;
+	private static $_instance;
 	
 	/**
 	 * @var  Facebook  Instance
 	 */
-	protected $_facebook;
+	private $_facebook;
 	
 	/**
 	 * @var  array  User information
 	 */
-	protected $_me;
+	private $_me;
 	
 	/**
 	 * @var  array  What fields to query about the user
 	 */
-	protected $_fields = array();
-
+	private $_fields = array();
+	
 	/**
-	 * Create new Facebook_Auth instance.
-	 *
-	 * @return  void
+	 * @var  boolean  Whether user has been authed
 	 */
-	public function __construct($class = 'Facebook')
-	{
-		require_once Kohana::find_file('vendor','facebook/src/facebook');
-
-		// Instantiate new Facebook object
-		$this->_facebook = new $class(
-			array(
-				'appId'  => Kohana::$config->load('fb')->app_id,
-				'secret' => Kohana::$config->load('fb')->app_secret,
-			)
-		);
-		
-		$this->auth();
-	}
+	private $_authed = FALSE;
+	
+	/**
+	 * @var  string  The class name to use for the facebook sdk. Can be used with a wrapper
+	 */
+	private $_class;
 	
 	/**
 	 * Authorizes the user
 	 *
-	 * @return  void
+	 * @return  self
 	 */
-	private function auth()
+	public function auth($class = 'Facebook')
 	{
-		// Attempt to query information about the user
-		try 
+		if( !$this->_class )
 		{
-			$this->_me = $this->_facebook
-				->query( "/".$this->_facebook->getUser()."?fields=" . implode(',', $this->_fields) )
-				->set_table('user')
-				->set_lifetime(3600)
-				->execute();
+			$this->_class = $class;
 		}
-
-		// If failed attempt, redirect to login page (Auth)
-		catch(Exception $error) 
+		
+		if( !$this->_authed && $this->_class )
 		{
-			if(strpos($error, 'OAuth') !== FALSE || $this->_facebook->getUser() == 0) 
+			// Instantiate new Facebook object
+			$this->_facebook = new $this->_class(
+				array(
+					'appId'  => Kohana::$config->load('fb')->app_id,
+					'secret' => Kohana::$config->load('fb')->app_secret,
+				)
+			);
+		
+			// Attempt to query information about the user
+			try 
 			{
-				if(Kohana::$config->load('fb')->canvas !== FALSE)
-				{
-					echo "
-						<script>
-							top.location.href = '{$this->_facebook->getLoginUrl()}';
-						</script>";
-				} 
-				else 
-				{
-					header("Location: {$this->_facebook->getLoginUrl()}");
-				}
-				exit;
+				$this->_me = $this->_facebook
+					->query( "/".$this->_facebook->getUser()."?fields=" . implode(',', $this->_fields) )
+					->set_table('user')
+					->set_lifetime(3600)
+					->execute(TRUE);
 			}
 
-			error_log($error);
+			// If failed attempt, redirect to login page (Auth)
+			catch(Exception $error) 
+			{
+				if(strpos($error, 'OAuth') !== FALSE || $this->_facebook->getUser() == 0) 
+				{
+					if(Kohana::$config->load('fb')->canvas !== FALSE)
+					{
+						echo "
+							<script>
+								top.location.href = '{$this->_facebook->getLoginUrl()}';
+							</script>";
+					} 
+					else 
+					{
+						header("Location: {$this->_facebook->getLoginUrl()}");
+					}
+					exit;
+				}
+
+				error_log($error);
+			}
+			
+			$this->_authed = TRUE;
 		}
+		
+		return $this;
 	}
 
 	/**
@@ -110,7 +126,10 @@ abstract class Kohana_FB {
 	*/
 	public function me()
 	{
-		return $this->_me;
+		if($this->_authed)
+		{
+			return $this->_me;
+		}
 	}
 	
 	/**
@@ -118,11 +137,11 @@ abstract class Kohana_FB {
 	 *
 	 * @returns  object  Kohana_FB
 	*/
-	public static function instance($class = 'Facebook')
+	public static function instance()
 	{
 		if(!isset(self::$_instance))
 		{
-			self::$_instance = new FB($class);
+			self::$_instance = new FB();
 		}
 		
 		return self::$_instance;
@@ -135,7 +154,12 @@ abstract class Kohana_FB {
 	*/
 	public static function get_facebook()
 	{
-		return self::$_instance->_facebook;
+		$instance = self::$_instance;
+		
+		if($instance->_authed)
+		{
+			return $instance->_facebook;
+		}
 	}
 
 }

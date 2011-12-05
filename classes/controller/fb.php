@@ -6,7 +6,10 @@ abstract class Controller_FB extends Controller {
 
 	public function before()
 	{
-		$this->me = FB::instance()->me();
+		
+		$this->me = FB::instance()
+						->auth()
+						->me();
 		
 		parent::before();
 	}
