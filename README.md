@@ -15,7 +15,7 @@ Usage
 Call this anywhere to authorize / get information about the user
 
 	// To authenticate user
-	FB::instance();
+	FB::instance()->auth();
 	
 	// To authenticate user and return user data
 	FB::instance()->me();
@@ -24,7 +24,7 @@ Call this anywhere to authorize / get information about the user
 	FB::get_facebook()->api(/* API CALL */);
 	
 	// If a wrapper facebook class is being used
-	FB::instance('MyFacebook');
+	FB::instance()->auth('MyFacebook');
 
 ### Controller
 
