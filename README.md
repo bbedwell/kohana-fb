@@ -17,7 +17,7 @@ Call this anywhere to authorize / get information about the user
 	// To authenticate user
 	FB::instance()->auth();
 	
-	// To authenticate user and return user data
+	// To return user data
 	FB::instance()->me();
 	
 	// To access Facebook API
