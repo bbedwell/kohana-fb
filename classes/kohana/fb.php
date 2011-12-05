@@ -85,7 +85,7 @@ abstract class Kohana_FB {
 		{
 			if(strpos($error, 'OAuth') !== FALSE || $this->_facebook->getUser() == 0) 
 			{
-				if(Kohana::$config->load('facebook')->canvas !== FALSE)
+				if(Kohana::$config->load('fb')->canvas !== FALSE)
 				{
 					echo "
 						<script>
