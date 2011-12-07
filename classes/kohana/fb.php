@@ -73,6 +73,9 @@ abstract class Kohana_FB {
 		
 		if( !$this->_authed && $this->_class )
 		{
+			// Auth method has been called
+			$this->_authed = TRUE;
+			
 			// Instantiate new Facebook object
 			$this->_facebook = new $this->_class(
 				array(
@@ -109,7 +112,6 @@ abstract class Kohana_FB {
 				error_log($error);
 			}
 			
-			$this->_authed = TRUE;
 		}
 		
 		return $this;
